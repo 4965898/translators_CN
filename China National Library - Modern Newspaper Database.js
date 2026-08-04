@@ -148,13 +148,6 @@ function scrapeItemFromSearchResult(doc, docID, url) {
 		}
 	}
 
-	item.attachments.push({
-		title: "Newspaper Database Record",
-		url: item.url,
-		mimeType: "text/html",
-		snapshot: false
-	});
-
 	item.complete();
 }
 
@@ -180,13 +173,6 @@ function scrape(doc, url) {
 	item.url = url;
 	item.language = "zh-CN";
 	item.libraryCatalog = "中国历史文献总库·近代报纸数据库";
-
-	item.attachments.push({
-		title: "Newspaper Database Record",
-		url: url,
-		mimeType: "text/html",
-		snapshot: false
-	});
 
 	item.complete();
 }

@@ -132,13 +132,6 @@ function scrape(doc, url) {
 	item.url = url;
 	item.language = "zh-CN";
 
-	item.attachments.push({
-		title: "China National Library Record",
-		url: url,
-		mimeType: "text/html",
-		snapshot: false
-	});
-
 	item.complete();
 }
 
