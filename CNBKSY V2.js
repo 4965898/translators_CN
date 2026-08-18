@@ -1,7 +1,7 @@
-﻿{
+{
 	"translatorID": "a3b4c5d6-e7f8-4a90-bcde-f12345678901",
 	"label": "CNBKSY V2",
-	"creator": "jiaojiaodubai",
+	"creator": "Daxoel",
 	"target": "^https?://(www\\.)?cnbksy\\.com/v2",
 	"minVersion": "5.0",
 	"maxVersion": "",
@@ -9,13 +9,13 @@
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2026-08-04 00:00:00"
+	"lastUpdated": "2026-08-18 10:53:57"
 }
 
 /*
 	***** BEGIN LICENSE BLOCK *****
 
-	Copyright © 2024 jiaojiaodubai23@gmail.com
+	Copyright © 2026 4965898
 
 	This file is part of Zotero.
 
@@ -65,15 +65,15 @@ function detectWeb(doc, url) {
 }
 
 function getSearchResults(doc, checkOnly) {
-	var items = {};
-	var found = false;
-	var rows = doc.querySelectorAll('tr.ant-table-row[data-row-key]');
-	for (let row of rows) {
-		let id = row.getAttribute('data-row-key');
-		let titleEl = row.querySelector('.titleBox a.cpHover');
+	const items = {};
+	let found = false;
+	const rows = doc.querySelectorAll('tr.ant-table-row[data-row-key]');
+	for (const row of rows) {
+		const id = row.getAttribute('data-row-key');
+		const titleEl = row.querySelector('.titleBox a.cpHover');
 		if (!id || !titleEl) continue;
 		// textContent 自动忽略 <font class="highLight"> 标签，拼接出纯文本标题
-		let title = ZU.trimInternal(titleEl.textContent);
+		const title = ZU.trimInternal(titleEl.textContent);
 		if (!title) continue;
 		if (checkOnly) return true;
 		found = true;
@@ -85,7 +85,7 @@ function getSearchResults(doc, checkOnly) {
 
 async function doWeb(doc, url) {
 	if (detectWeb(doc, url) == 'multiple') {
-		let items = await Zotero.selectItems(getSearchResults(doc, false));
+		let items = await Z.selectItems(getSearchResults(doc, false));
 		if (!items) return;
 		// SPA 页面 requestDocument 会拿到未渲染的外壳，改为直接从搜索结果页 DOM 提取元数据
 		for (let id of Object.keys(items)) {
@@ -99,17 +99,17 @@ async function doWeb(doc, url) {
 
 // 从搜索结果页 DOM 直接提取单条元数据（避免 SPA 外壳问题）
 function scrapeFromSearch(doc, id) {
-	var row = doc.querySelector(`tr.ant-table-row[data-row-key="${id}"]`);
+	const row = doc.querySelector(`tr.ant-table-row[data-row-key="${id}"]`);
 	if (!row) return;
-	var timeBox = row.querySelector('.timeBox');
+	const timeBox = row.querySelector('.timeBox');
 	if (!timeBox) return;
 	// timeBox 文本格式：
 	//   期刊："作者 《刊名》 1922 年 [ 第1卷 第3期 ，1-2页 ]"
 	//   报纸："作者 《报名》 1945 年 10 月 9 日 [0004版]"
-	var timeText = ZU.trimInternal(timeBox.textContent);
-	var bracket = tryMatch(timeText, /\[([^\]]*)\]/);
+	const timeText = ZU.trimInternal(timeBox.textContent);
+	const bracket = tryMatch(timeText, /\[([^\]]*)\]/);
 
-	var type;
+	let type;
 	if (/卷.*期/.test(bracket)) {
 		type = 'journalArticle';
 	}
@@ -121,7 +121,7 @@ function scrapeFromSearch(doc, id) {
 		type = 'journalArticle';
 	}
 
-	var newItem = new Z.Item(type);
+	const newItem = new Z.Item(type);
 	// 标题
 	newItem.title = ZU.trimInternal(row.querySelector('.titleBox a.cpHover').textContent);
 	// 作者与文献来源：遍历 .timeBox 内所有 cpHover 链接
@@ -129,9 +129,9 @@ function scrapeFromSearch(doc, id) {
 	//   含"卷/期/版/页"的是卷期信息，跳过
 	//   其余是作者（多作者时第二个作者可能没有 authorMarginR class）
 	//   若一个链接文本含空格分隔的多个名字，按空格拆分（需 DOM 确认）
-	var cpHoverLinks = row.querySelectorAll('.timeBox a.cpHover');
-	for (let link of cpHoverLinks) {
-		let text = ZU.trimInternal(link.textContent);
+	const cpHoverLinks = row.querySelectorAll('.timeBox a.cpHover');
+	for (const link of cpHoverLinks) {
+		const text = ZU.trimInternal(link.textContent);
 		if (/[《》]/.test(text)) {
 			// 文献来源
 			newItem.publicationTitle = text.replace(/^《|》$/g, '').trim();
@@ -159,8 +159,8 @@ function scrapeFromSearch(doc, id) {
 	}
 	// PDF 附件：根据文章类型推断 lcPieceTypeId（期刊=7，报纸=12）
 	// activeId 用 undefined（之前详情页测试确认非必需）
-	var lcPieceTypeId = (type === 'journalArticle') ? '7' : '12';
-	var pdfUrl = `https://${doc.location.host}/api/v2/literature/download?downloadSource=GENERALSEARCH&source=DOWNLOAD&lcPieceTypeId=${lcPieceTypeId}&pieceId=${id}&activeId=undefined`;
+	const lcPieceTypeId = (type === 'journalArticle') ? '7' : '12';
+	const pdfUrl = `https://${doc.location.host}/api/v2/literature/download?downloadSource=GENERALSEARCH&source=DOWNLOAD&lcPieceTypeId=${lcPieceTypeId}&pieceId=${id}&activeId=undefined`;
 	newItem.attachments.push({
 		title: 'Full Text PDF',
 		mimeType: 'application/pdf',
@@ -309,5 +309,6 @@ class Labels {
 }
 
 /** BEGIN TEST CASES **/
-var testCases = []
+var testCases = [
+]
 /** END TEST CASES **/
