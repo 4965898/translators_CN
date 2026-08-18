@@ -1,21 +1,21 @@
 {
-	"translatorID": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+	"translatorID": "44cfd2f1-114f-48d0-b62c-f4d405ac5fb7",
 	"label": "China National Library - Republic Era",
-	"creator": "Zotero User",
-	"target": "^https?://read\\.nlc\\.cn/allSearch/(searchDetail|searchList)\\?.*",
-	"minVersion": "3.0",
+	"creator": "Daxoel",
+	"target": "^https?://read\.nlc\.cn/allSearch/(searchDetail|searchList)\?.*",
+	"minVersion": "5.0",
 	"maxVersion": "",
 	"priority": 100,
 	"inRepository": true,
 	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2026-07-10 17:15:00"
+	"lastUpdated": "2026-08-18 10:00:00"
 }
 
 /*
 	***** BEGIN LICENSE BLOCK *****
 
-	Copyright © 2026 Zotero User
+	Copyright © 2026 4965898
 
 	This file is part of Zotero.
 
@@ -46,16 +46,15 @@ function detectWeb(doc, url) {
 	return false;
 }
 
-
 function getSearchResults(doc, checkOnly) {
-	var items = {};
-	var found = false;
-	var rows = doc.querySelectorAll('ul.YMH2019_New_MGZYK_List1.List-TB > li');
-	for (var i = 0; i < rows.length; i++) {
-		var a = rows[i].querySelector('a');
+	const items = {};
+	let found = false;
+	const rows = doc.querySelectorAll('ul.YMH2019_New_MGZYK_List1.List-TB > li');
+	for (const row of rows) {
+		const a = row.querySelector('a');
 		if (!a) continue;
-		var href = a.href;
-		var title = text(rows[i], 'span.tt');
+		const href = a.href;
+		const title = text(row, 'span.tt');
 		if (!href || !title) continue;
 		if (checkOnly) return true;
 		found = true;
@@ -64,34 +63,31 @@ function getSearchResults(doc, checkOnly) {
 	return found ? items : false;
 }
 
-
-function doWeb(doc, url) {
-	if (detectWeb(doc, url) == "multiple") {
-		Zotero.selectItems(getSearchResults(doc, false), function (items) {
-			if (!items) return;
-			ZU.processDocuments(Object.keys(items), scrape);
-		});
+async function doWeb(doc, url) {
+	if (detectWeb(doc, url) === "multiple") {
+		const items = await Z.selectItems(getSearchResults(doc, false));
+		if (!items) return;
+		await processDocuments(Object.keys(items), scrape);
 	}
 	else {
 		scrape(doc, url);
 	}
 }
 
-
 function scrape(doc, url) {
-	var item = new Zotero.Item("book");
+	const item = new Z.Item("book");
 
 	item.title = (text(doc, 'div.title') || text(doc, 'input#title')).trim();
 
-	var author = text(doc, 'input#author') || getFieldValue(doc, '责任者');
+	const author = text(doc, 'input#author') || getFieldValue(doc, '责任者');
 	if (author) {
-		author = author.replace(/[著编译辑撰]+$/, '').trim();
-		var authors = author.split(/[,，]/);
-		for (var i = 0; i < authors.length; i++) {
-			var name = authors[i].trim();
-			if (name) {
+		const cleanAuthor = author.replace(/[著编译辑撰]+$/, '').trim();
+		const authors = cleanAuthor.split(/[,，]/);
+		for (const name of authors) {
+			const trimmedName = name.trim();
+			if (trimmedName) {
 				item.creators.push({
-					lastName: name,
+					lastName: trimmedName,
 					creatorType: "author",
 					fieldMode: 1
 				});
@@ -99,32 +95,32 @@ function scrape(doc, url) {
 		}
 	}
 
-	var publisher = getFieldValue(doc, '出版者');
+	const publisher = getFieldValue(doc, '出版者');
 	if (publisher) {
 		item.publisher = publisher.trim();
 	}
 
-	var date = getFieldValue(doc, '出版时间');
+	const date = getFieldValue(doc, '出版时间');
 	if (date) {
 		item.date = date.trim();
 	}
 
-	var subject = getFieldValue(doc, '主题') || text(doc, 'input#Keyword');
+	const subject = getFieldValue(doc, '主题') || text(doc, 'input#Keyword');
 	if (subject) {
 		item.tags = subject.split(/[;；,，]/).map(function (t) { return t.trim(); }).filter(function (t) { return t; });
 	}
 
-	var physicalDesc = getFieldValue(doc, '载体形态');
+	const physicalDesc = getFieldValue(doc, '载体形态');
 	if (physicalDesc) {
 		item.numPages = physicalDesc.trim();
 	}
 
-	var abstract = getFieldValue(doc, '摘要');
+	const abstract = getFieldValue(doc, '摘要');
 	if (abstract) {
 		item.abstractNote = abstract.trim();
 	}
 
-	var identifier = text(doc, 'input#identifier');
+	const identifier = text(doc, 'input#identifier');
 	if (identifier) {
 		item.callNumber = identifier.trim();
 	}
@@ -135,13 +131,12 @@ function scrape(doc, url) {
 	item.complete();
 }
 
-
 function getFieldValue(doc, fieldName) {
-	var labels = doc.querySelectorAll('.XiangXi label');
-	for (var i = 0; i < labels.length; i++) {
-		var textContent = labels[i].textContent.trim();
+	const labels = doc.querySelectorAll('.XiangXi label');
+	for (const label of labels) {
+		const textContent = label.textContent.trim();
 		if (textContent.startsWith(fieldName + '：') || textContent.startsWith(fieldName + ':')) {
-			var valueSpan = labels[i].querySelector('span.t1');
+			const valueSpan = label.querySelector('span.t1');
 			if (valueSpan) {
 				return valueSpan.textContent.trim();
 			}
@@ -149,7 +144,6 @@ function getFieldValue(doc, fieldName) {
 	}
 	return null;
 }
-
 
 /** BEGIN TEST CASES **/
 var testCases = [
